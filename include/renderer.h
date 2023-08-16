@@ -6,8 +6,8 @@
 
 class Renderer {
 public:
-	static constexpr int HEIGHT = 720;
-	static constexpr int WIDTH = 16 * HEIGHT / 9;
+	static constexpr int HEIGHT = 800;
+	static constexpr int WIDTH = 800;
 	static constexpr int SCALE = 2;
 private:
 	sf::RenderTarget& render_target;

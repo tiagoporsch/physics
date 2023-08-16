@@ -6,19 +6,17 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "constraint.h"
 #include "body.h"
+#include "grid.h"
 #include "vec2.h"
 
 struct Solver {
+	Grid grid;
 	std::vector<std::shared_ptr<Body>> bodies;
-
-	std::shared_ptr<AccelerationConstraint> gravity;
-	std::shared_ptr<LineDistanceConstraint> vertical_bounds;
-	std::shared_ptr<LineDistanceConstraint> horizontal_bounds;
 
 	Solver();
 
-	void add_body(Body body);
+	void solve_contact(uint32_t id1, uint32_t id2);
+	void process_body(uint32_t id, const Cell& cell);
 	void update(float dt);
 };

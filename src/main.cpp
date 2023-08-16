@@ -12,66 +12,16 @@ struct Experiment {
 	void (*step)(Solver&);
 };
 
-static const Experiment e1 = {
-	.init = [](Solver& solver) {
-		// Make a chain
-		{
-			float link_distance = 0.2f;
-			float stiffness = 1.0f;
-			float max_deformation = 2.0f;
-			int links = 40;
-			for (int i = 0; i < links; i++) {
-				Body b {{link_distance * i - link_distance * links / 2, -7}};
-				if (i == 0 || i == links - 1)
-					b.add_constraint(std::make_shared<PointDistanceConstraint>(PointDistanceConstraint::Type::FIXED, Vec2 {link_distance * i - link_distance * links / 2, -7}));
-				if (i != 0)
-					b.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies.back(), link_distance, stiffness, max_deformation));
-				solver.add_body(b);
-			}
-		}
-
-		// Make a tower
-		{
-			float body_radius = 0.1f;
-			float body_distance = 1.0f;
-			float stiffness = 0.25f;
-			float max_deformation = 1.05f;
-			int height = 8;
-			for (int i = 0; i < height; i++) {	
-				if (i == 0) {
-					solver.add_body(Body {{ 0.5f * body_distance, 8.0f - body_radius - (float) i}});
-					solver.add_body(Body {{-0.5f * body_distance, 8.0f - body_radius - (float) i}}
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 1], body_distance, stiffness, max_deformation))
-					);
-				} else {
-					solver.add_body(Body {{ 0.5f * body_distance, 8.0f - body_radius - (float) i}}
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 2], body_distance, stiffness, max_deformation))
-					);
-					solver.add_body(Body {{-0.5f * body_distance, 8.0f - body_radius - (float) i}}
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 1], body_distance, stiffness, max_deformation))
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 2], body_distance, stiffness, max_deformation))
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 3], fsqrt(2) * body_distance, stiffness, max_deformation))
-					);
-				}
-			}
-		}
-	},
-	.step = [](Solver& solver) {
-		static uint64_t frame = 0;
-		if ((frame < 109 * (165 / 5)) && (++frame % (165 / 5) == 0)) {
-			solver.add_body(Body {{0, -8}, {0, 0.2f / (165.f / 5.f)}});
-		}
-	}
-};
-
 static const Experiment e2 = {
 	.init = [](Solver& solver) {
 	},
 	.step = [](Solver& solver) {
 		static uint64_t frame = 0;
-		// if (++frame % 1 == 0) {
-			solver.add_body(Body {{-14, -8}, {0.2f, 0.0f}});
-		// }
+		if (++frame % 4 == 0) {
+			solver.bodies.push_back(std::make_shared<Body>(
+				Vec2 { 2.f, 2.f }, Vec2 { .3f, 0.f }
+			));
+		}
 	}
 };
 
@@ -98,26 +48,32 @@ int main() {
 
 	Renderer renderer { window };
 	Solver solver;
-	auto& experiment = e1;
+	auto& experiment = e2;
 
 	experiment.init(solver);
 	while (window.isOpen()) {
+		clock.restart();
 		for (auto event = sf::Event(); window.pollEvent(event);) {
 			switch (event.type) {
 				case sf::Event::Closed:
 					window.close();
 					break;
 				case sf::Event::MouseButtonReleased:
-					solver.add_body(Body {{
-						Renderer::SCALE * 16 * (sf::Mouse::getPosition(window).x - Renderer::WIDTH / Renderer::SCALE) / (float) Renderer::WIDTH,
-						Renderer::SCALE * 9 * (sf::Mouse::getPosition(window).y - Renderer::HEIGHT / Renderer::SCALE) / (float) Renderer::HEIGHT
-					}});
+					solver.bodies.push_back(std::make_shared<Body>(
+						Vec2 {
+							sf::Mouse::getPosition(window).x / (float) Renderer::SCALE,
+							sf::Mouse::getPosition(window).y / (float) Renderer::SCALE
+						},
+						Vec2 { 1.f, 0.f }
+					));
 					break;
 			}
 		}
 
 		experiment.step(solver);
-		solver.update(ups.asSeconds());
+		solver.update(ups.asSeconds() / 3.f);
+		solver.update(ups.asSeconds() / 3.f);
+		solver.update(ups.asSeconds() / 3.f);
 		body_count_text.setString(std::to_string(solver.bodies.size()) + " bodies");
 
 		renderer.render(solver);

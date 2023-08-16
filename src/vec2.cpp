@@ -1,5 +1,6 @@
 #include "vec2.h"
 
+float Vec2::length_sq() const { return x * x + y * y; }
 float Vec2::length() const { return sqrtf(x * x + y * y); }
 Vec2& Vec2::normalize() { return *this /= length(); };
 
