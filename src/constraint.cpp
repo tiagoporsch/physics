@@ -7,12 +7,15 @@ void AccelerationConstraint::apply(Body& body) {
 }
 
 void BodyDistanceConstraint::apply(Body& body) {
-	const auto axis = body.position - other_body->position;
-	const auto dist = axis.length();
-	const auto n = axis / dist;
-	const auto delta = distance - dist;
-	body.position += 0.5f * delta * n;
-	other_body->position -= 0.5f * delta * n;
+	auto axis = body.position - other_body->position;
+	auto distance = axis.length();
+	if (distance > max_deformation * target_distance) {
+		broken = true;
+		return;
+	}
+	auto correction = 0.5f * stiffness * (distance - target_distance) * axis;
+	body.position -= correction;
+	other_body->position += correction;
 }
 
 void PointDistanceConstraint::apply(Body& body) {

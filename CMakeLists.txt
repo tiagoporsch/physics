@@ -4,6 +4,7 @@ project(physics)
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
 file(GLOB SRCS CONFIGURE_DEPENDS "include/*.h" "src/*.cpp")
+file(COPY RobotoMono-Regular.ttf DESTINATION "${CMAKE_BINARY_DIR}")
 add_executable(${CMAKE_PROJECT_NAME} ${SRCS})
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE "include/")
 target_link_libraries(${CMAKE_PROJECT_NAME} sfml-graphics)
