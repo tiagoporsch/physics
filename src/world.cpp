@@ -1,4 +1,4 @@
-#include "solver.h"
+#include "world.h"
 
 World::World() {
 	gravity = std::make_shared<AccelerationConstraint>(Vec2 {0, 98.1f});

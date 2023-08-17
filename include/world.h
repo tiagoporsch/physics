@@ -12,8 +12,9 @@
 #include "vec2.h"
 
 struct World {
-	static constexpr float WIDTH = static_cast<float>(Renderer::WIDTH) / static_cast<float>(Renderer::SCALE);
-	static constexpr float HEIGHT = static_cast<float>(Renderer::HEIGHT) / static_cast<float>(Renderer::SCALE);
+	static constexpr auto WIDTH = static_cast<float>(Renderer::WIDTH) / static_cast<float>(Renderer::SCALE);
+	static constexpr auto HEIGHT = static_cast<float>(Renderer::HEIGHT) / static_cast<float>(Renderer::SCALE);
+	static constexpr auto DELTA_TIME = 1.f / 165.f;
 
 	std::vector<std::shared_ptr<Body>> bodies;
 

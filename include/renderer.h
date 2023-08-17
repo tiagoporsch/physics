@@ -14,5 +14,5 @@ private:
 	sf::CircleShape circle_shape;
 public:
 	Renderer(sf::RenderTarget& render_target);
-	void render(const World& solver);
+	void render(const World& world);
 };
