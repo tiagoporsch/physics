@@ -6,72 +6,91 @@
 #include "renderer.h"
 #include "solver.h"
 
+static uint64_t frame = 0;
+
 struct Experiment {
-	uint64_t frame = 0;
-	void (*init)(Solver&);
-	void (*step)(Solver&);
+	void (*init)(World&);
+	void (*step)(World&);
 };
 
 static const Experiment e1 = {
-	.init = [](Solver& solver) {
+	.init = [](World& solver) {
 		// Make a chain
 		{
-			float link_distance = 0.2f;
+			float link_distance = 2.0f;
 			float stiffness = 1.0f;
 			float max_deformation = 2.0f;
-			int links = 40;
+			int links = 35;
 			for (int i = 0; i < links; i++) {
-				Body b {{link_distance * i - link_distance * links / 2, -7}};
+				Body b {{World::WIDTH / 2 + link_distance * (i - links / 2), World::HEIGHT / 6}};
 				if (i == 0 || i == links - 1)
-					b.add_constraint(std::make_shared<PointDistanceConstraint>(PointDistanceConstraint::Type::FIXED, Vec2 {link_distance * i - link_distance * links / 2, -7}));
+					b.add_constraint(std::make_shared<PointDistanceConstraint>(PointDistanceConstraint::Type::FIXED, b.position));
 				if (i != 0)
-					b.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies.back(), link_distance, stiffness, max_deformation));
+					b.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 1], link_distance, stiffness, max_deformation));
 				solver.add_body(b);
 			}
 		}
 
 		// Make a tower
 		{
-			float body_radius = 0.1f;
-			float body_distance = 1.0f;
-			float stiffness = 0.25f;
-			float max_deformation = 1.05f;
-			int height = 8;
-			for (int i = 0; i < height; i++) {	
-				if (i == 0) {
-					solver.add_body(Body {{ 0.5f * body_distance, 8.0f - body_radius - (float) i}});
-					solver.add_body(Body {{-0.5f * body_distance, 8.0f - body_radius - (float) i}}
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 1], body_distance, stiffness, max_deformation))
-					);
+			float body_radius = 1.f;
+			float body_distance = 10.0f;
+			float stiffness = 0.15f;
+			float max_deformation = 1.1f;
+			int width = 8, height = 12;
+			for (int row = 0; row < height; row++) {	
+				if (row == 0) {
+					for (int col = 0; col < width; col++) {
+						if (col == 0) {
+							solver.add_body(Body {{World::WIDTH / 2 + (col - width / 2) * body_distance, World::HEIGHT - body_distance * row - 2 * body_radius}});
+						} else {
+							solver.add_body(Body {{World::WIDTH / 2 + (col - width / 2) * body_distance, World::HEIGHT - body_distance * row - 2 * body_radius}}
+								.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 1], body_distance, stiffness, max_deformation))
+							);
+						}
+					}
 				} else {
-					solver.add_body(Body {{ 0.5f * body_distance, 8.0f - body_radius - (float) i}}
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 2], body_distance, stiffness, max_deformation))
-					);
-					solver.add_body(Body {{-0.5f * body_distance, 8.0f - body_radius - (float) i}}
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 1], body_distance, stiffness, max_deformation))
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 2], body_distance, stiffness, max_deformation))
-						.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 3], fsqrt(2) * body_distance, stiffness, max_deformation))
-					);
+					for (int col = 0; col < width; col++) {
+						if (col == 0) {
+							solver.add_body(Body {{World::WIDTH / 2 + (col - width / 2) * body_distance, World::HEIGHT - body_distance * row - 2 * body_radius}}
+								.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - width], body_distance, stiffness, max_deformation))
+							);
+						} else {
+							solver.add_body(Body {{World::WIDTH / 2 + (col - width / 2) * body_distance, World::HEIGHT - body_distance * row - 2 * body_radius}}
+								.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - 1], body_distance, stiffness, max_deformation))
+								.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - width], body_distance, stiffness, max_deformation))
+								.add_constraint(std::make_shared<BodyDistanceConstraint>(solver.bodies[solver.bodies.size() - width - 1], fsqrt(2) * body_distance, stiffness, max_deformation))
+							);
+						}
+					}
 				}
 			}
 		}
 	},
-	.step = [](Solver& solver) {
-		static uint64_t frame = 0;
-		if ((frame < 109 * (165 / 5)) && (++frame % (165 / 5) == 0)) {
-			solver.add_body(Body {{0, -8}, {0, 0.2f / (165.f / 5.f)}});
+	.step = [](World& solver) {
+		if ((frame < 130 * (165 / 10)) && (++frame % (165 / 10) == 0)) {
+			solver.add_body(Body {
+				{World::WIDTH / 2 - 2.f, World::HEIGHT / 8}, {0, 2.0f / (165.f / 10.f)},
+			});
+			solver.add_body(Body {
+				{World::WIDTH / 2, World::HEIGHT / 8}, {0, 2.0f / (165.f / 10.f)},
+			});
+			solver.add_body(Body {
+				{World::WIDTH / 2 + 2.f, World::HEIGHT / 8}, {0, 2.0f / (165.f / 10.f)},
+			});
 		}
 	}
 };
 
 static const Experiment e2 = {
-	.init = [](Solver& solver) {
+	.init = [](World& solver) {
 	},
-	.step = [](Solver& solver) {
-		static uint64_t frame = 0;
-		// if (++frame % 1 == 0) {
-			solver.add_body(Body {{-14, -8}, {0.2f, 0.0f}});
-		// }
+	.step = [](World& solver) {
+		if (++frame % 2 == 0) {
+			solver.add_body(Body {
+				{8.f, 8.f}, {1.25f, 0.f}
+			});
+		}
 	}
 };
 
@@ -84,12 +103,12 @@ int main() {
 	sf::Text step_time_text;
 	step_time_text.setFont(font);
 	step_time_text.setCharacterSize(12);
-	step_time_text.setFillColor(sf::Color::Black);
+	step_time_text.setFillColor(sf::Color::White);
 
 	sf::Text body_count_text;
 	body_count_text.setFont(font);
 	body_count_text.setCharacterSize(12);
-	body_count_text.setFillColor(sf::Color::Black);
+	body_count_text.setFillColor(sf::Color::White);
 	body_count_text.setPosition({0, 12});
 
 	sf::Clock clock;
@@ -97,11 +116,13 @@ int main() {
 	sf::Time ups = sf::seconds(1.f / 165.f);
 
 	Renderer renderer { window };
-	Solver solver;
-	auto& experiment = e1;
+	World solver;
+	auto& experiment = e2;
+	bool paused = true;
 
 	experiment.init(solver);
 	while (window.isOpen()) {
+		clock.restart();
 		for (auto event = sf::Event(); window.pollEvent(event);) {
 			switch (event.type) {
 				case sf::Event::Closed:
@@ -109,15 +130,29 @@ int main() {
 					break;
 				case sf::Event::MouseButtonReleased:
 					solver.add_body(Body {{
-						Renderer::SCALE * 16 * (sf::Mouse::getPosition(window).x - Renderer::WIDTH / Renderer::SCALE) / (float) Renderer::WIDTH,
-						Renderer::SCALE * 9 * (sf::Mouse::getPosition(window).y - Renderer::HEIGHT / Renderer::SCALE) / (float) Renderer::HEIGHT
+						sf::Mouse::getPosition(window).x / static_cast<float>(Renderer::SCALE),
+						sf::Mouse::getPosition(window).y / static_cast<float>(Renderer::SCALE)
 					}});
+					break;
+				case sf::Event::KeyReleased:
+					if (event.key.code == sf::Keyboard::P) {
+						paused = !paused;
+					} else if (event.key.code == sf::Keyboard::R) {
+						solver.bodies.clear();
+						experiment.init(solver);
+						frame = 0;
+					} else if (event.key.code == sf::Keyboard::S && paused) {
+						experiment.step(solver);
+						solver.update(ups.asSeconds());
+					}
 					break;
 			}
 		}
 
-		experiment.step(solver);
-		solver.update(ups.asSeconds());
+		if (!paused) {
+			experiment.step(solver);
+			solver.update(ups.asSeconds());
+		}
 		body_count_text.setString(std::to_string(solver.bodies.size()) + " bodies");
 
 		renderer.render(solver);
@@ -128,7 +163,7 @@ int main() {
 		auto elapsed = clock.restart();
 		step_time_text.setString(std::to_string(elapsed.asMicroseconds()) + " us");
 		if (elapsed < ups) {
-			step_time_text.setFillColor(sf::Color::Black);
+			step_time_text.setFillColor(sf::Color::White);
 			sf::sleep(ups - elapsed);
 		} else {
 			step_time_text.setFillColor(sf::Color::Red);

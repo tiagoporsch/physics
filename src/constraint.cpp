@@ -13,6 +13,7 @@ void BodyDistanceConstraint::apply(Body& body) {
 		broken = true;
 		return;
 	}
+	axis /= distance;
 	auto correction = 0.5f * stiffness * (distance - target_distance) * axis;
 	body.position -= correction;
 	other_body->position += correction;

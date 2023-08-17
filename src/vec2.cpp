@@ -1,6 +1,6 @@
 #include "vec2.h"
 
-float Vec2::length() const { return sqrtf(x * x + y * y); }
+float Vec2::length() const { return sqrt(x * x + y * y); }
 Vec2& Vec2::normalize() { return *this /= length(); };
 
 Vec2 operator-(const Vec2& right) { return { -right.x, -right.y }; }

@@ -1,19 +1,19 @@
 #include "solver.h"
 
-Solver::Solver() {
-	gravity = std::make_shared<AccelerationConstraint>(Vec2 {0, 9.81f});
-	vertical_bounds = std::make_shared<LineDistanceConstraint>(LineDistanceConstraint::Type::MINIMUM, Vec2 {0, 9}, 0, 1);
-	horizontal_bounds = std::make_shared<LineDistanceConstraint>(LineDistanceConstraint::Type::MAXIMUM, Vec2 {0, 0}, M_PI_2, 15);
+World::World() {
+	gravity = std::make_shared<AccelerationConstraint>(Vec2 {0, 98.1f});
+	vertical_bounds = std::make_shared<LineDistanceConstraint>(LineDistanceConstraint::Type::MINIMUM, Vec2 {0, HEIGHT}, 0, 1.f);
+	horizontal_bounds = std::make_shared<LineDistanceConstraint>(LineDistanceConstraint::Type::MAXIMUM, Vec2 {WIDTH / 2, 0}, M_PI_2, WIDTH / 2 - 1.f);
 }
 
-void Solver::add_body(Body body) {
+void World::add_body(Body body) {
 	body.add_constraint(gravity);
 	body.add_constraint(vertical_bounds);
 	body.add_constraint(horizontal_bounds);
 	bodies.push_back(std::make_shared<Body>(body));
 }
 
-void Solver::update(float dt) {
+void World::update(float dt) {
 	// Apply constraints
 	for (auto& body : bodies) {
 		body->apply_constraints();

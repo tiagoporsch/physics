@@ -10,13 +10,11 @@ struct Body {
 	Vec2 position = {};
 	Vec2 position_last = {};
 	Vec2 acceleration = {};
-	float radius = 0.1f;
+	float radius = 1.f;
 
 	std::vector<std::shared_ptr<Constraint>> constraints;
 
-	Body();
-	Body(Vec2 position);
-	Body(Vec2 position, Vec2 velocity);
+	Body(Vec2 position = {}, Vec2 velocity = {});
 
 	Body& add_constraint(std::shared_ptr<Constraint> constraint);
 

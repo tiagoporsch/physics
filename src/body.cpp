@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-Body::Body() {}
-Body::Body(Vec2 position): position {position}, position_last {position} {}
 Body::Body(Vec2 position, Vec2 velocity): position {position}, position_last {position - velocity} {}
 
 Body& Body::add_constraint(std::shared_ptr<Constraint> constraint) {

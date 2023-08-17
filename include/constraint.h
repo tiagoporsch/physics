@@ -23,12 +23,12 @@ public:
 };
 
 // Distance to body
-class BodyDistanceConstraint : public Constraint {
+struct BodyDistanceConstraint : public Constraint {
 	float target_distance;
 	float stiffness;
 	float max_deformation;
-public:
 	std::shared_ptr<Body> other_body;
+
 	BodyDistanceConstraint(std::shared_ptr<Body> other_body, float distance, float stiffness = 1.0f, float max_deformation = 1e10f):
 		other_body {other_body}, target_distance {distance}, stiffness {stiffness}, max_deformation {max_deformation} {}
 	void apply(Body& body);
