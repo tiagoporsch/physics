@@ -6,21 +6,21 @@
 #include "constraint.h"
 #include "vec2.h"
 
-struct Body {
+struct Particle {
+	static constexpr auto RADIUS = 1.f;
+
 	Vec2 position = {};
 	Vec2 position_last = {};
 	Vec2 acceleration = {};
-	float radius = 1.f;
 
 	std::vector<std::shared_ptr<Constraint>> constraints;
 
-	Body(Vec2 position = {}, Vec2 velocity = {});
+	Particle(Vec2 position = {}, Vec2 velocity = {});
 
-	Body& add_constraint(std::shared_ptr<Constraint> constraint);
+	Particle& add_constraint(std::shared_ptr<Constraint> constraint);
 
 	void apply_constraints();
 	void update_position(float dt);
-	void accelerate(Vec2 acc);
 
 	Vec2 get_velocity() const;
 };

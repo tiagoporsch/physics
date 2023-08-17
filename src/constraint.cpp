@@ -1,13 +1,13 @@
 #include "constraint.h"
 
-#include "body.h"
+#include "particle.h"
 
-void AccelerationConstraint::apply(Body& body) {
-	body.accelerate(acceleration);
+void AccelerationConstraint::apply(Particle& p) {
+	p.acceleration += acceleration;
 }
 
-void BodyDistanceConstraint::apply(Body& body) {
-	auto axis = body.position - other_body->position;
+void ParticleDistanceConstraint::apply(Particle& p) {
+	auto axis = p.position - other_p->position;
 	auto distance = axis.length();
 	if (distance > max_deformation * target_distance) {
 		broken = true;
@@ -15,21 +15,21 @@ void BodyDistanceConstraint::apply(Body& body) {
 	}
 	axis /= distance;
 	auto correction = 0.5f * stiffness * (distance - target_distance) * axis;
-	body.position -= correction;
-	other_body->position += correction;
+	p.position -= correction;
+	other_p->position += correction;
 }
 
-void PointDistanceConstraint::apply(Body& body) {
+void PointDistanceConstraint::apply(Particle& p) {
 	if (type == Type::FIXED) {
-		body.position = point;
+		p.position = point;
 	} else {
-		auto axis = body.position - point;
+		auto axis = p.position - point;
 		const auto dist = axis.length();
 		axis /= dist;
-		if (type == Type::MAXIMUM && dist > distance - body.radius) {
-			body.position = axis * (distance - body.radius);
-		} else if (type == Type::MINIMUM && dist < distance + body.radius) {
-			body.position = axis * (distance + body.radius);
+		if (type == Type::MAXIMUM && dist > distance - Particle::RADIUS) {
+			p.position = axis * (distance - Particle::RADIUS);
+		} else if (type == Type::MINIMUM && dist < distance + Particle::RADIUS) {
+			p.position = axis * (distance + Particle::RADIUS);
 		}
 	}
 }
@@ -38,15 +38,15 @@ template <typename T> static int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
-void LineDistanceConstraint::apply(Body& body) {
+void LineDistanceConstraint::apply(Particle& p) {
 	const auto axis = Vec2 {-sinf(angle), cosf(angle)};
-	const auto dist = axis.y * (point.y - body.position.y) + axis.x * (point.x - body.position.x);
+	const auto dist = axis.y * (point.y - p.position.y) + axis.x * (point.x - p.position.x);
 	const auto abs_dist = fabsf(dist);
 	if (type == Type::FIXED) {
-		body.position -= axis * (target_distance - abs_dist) * sgn(dist);
-	} else if (type == Type::MAXIMUM && abs_dist > target_distance - body.radius) {
-		body.position -= axis * (target_distance - abs_dist - body.radius) * sgn(dist);
-	} else if (type == Type::MINIMUM && abs_dist < target_distance + body.radius) {
-		body.position -= axis * (target_distance - abs_dist + body.radius) * sgn(dist);
+		p.position -= axis * (target_distance - abs_dist) * sgn(dist);
+	} else if (type == Type::MAXIMUM && abs_dist > target_distance - Particle::RADIUS) {
+		p.position -= axis * (target_distance - abs_dist - Particle::RADIUS) * sgn(dist);
+	} else if (type == Type::MINIMUM && abs_dist < target_distance + Particle::RADIUS) {
+		p.position -= axis * (target_distance - abs_dist + Particle::RADIUS) * sgn(dist);
 	}
 }

@@ -1,15 +1,15 @@
-#include "body.h"
+#include "particle.h"
 
 #include <algorithm>
 
-Body::Body(Vec2 position, Vec2 velocity): position {position}, position_last {position - velocity} {}
+Particle::Particle(Vec2 position, Vec2 velocity): position {position}, position_last {position - velocity} {}
 
-Body& Body::add_constraint(std::shared_ptr<Constraint> constraint) {
+Particle& Particle::add_constraint(std::shared_ptr<Constraint> constraint) {
 	constraints.push_back(constraint);
 	return *this;
 }
 
-void Body::apply_constraints() {
+void Particle::apply_constraints() {
 	for (auto& constraint : constraints) {
 		constraint->apply(*this);
 	}
@@ -21,17 +21,13 @@ void Body::apply_constraints() {
 	);
 }
 
-void Body::update_position(float dt) {
+void Particle::update_position(float dt) {
 	const auto velocity = position - position_last;
 	position_last = position;
 	position += velocity + acceleration * dt * dt;
 	acceleration = {};
 }
 
-void Body::accelerate(Vec2 acc) {
-	acceleration += acc;
-}
-
-Vec2 Body::get_velocity() const {
+Vec2 Particle::get_velocity() const {
 	return position_last - position;
 }
